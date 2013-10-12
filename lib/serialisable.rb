@@ -20,7 +20,7 @@ module Serialisable
       selector, type = args
       @__elements[name] = [selector, type]
     else
-      raise InvalidArgumentException.new
+      raise ArgumentError
     end
   end
 

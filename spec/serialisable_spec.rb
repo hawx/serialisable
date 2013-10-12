@@ -156,4 +156,26 @@ EOS
       result.songs[1].name.must_equal 'Windowlicker'
     end
   end
+
+  describe '#elements' do
+    it 'raises an exception if not given less than two arguments' do
+      lambda {
+        Class.new {
+          extend Serialisable
+
+          elements :name
+        }
+      }.must_raise ArgumentError
+    end
+
+    it 'raises an exception if given more than three arguments' do
+      lambda {
+        Class.new {
+          extend Serialisable
+
+          elements :name, 'one', 'two', 'three'
+        }
+      }.must_raise ArgumentError
+    end
+  end
 end
