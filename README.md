@@ -19,7 +19,7 @@ This is still in the hacky stage, so you probably shouldn't use it...
     <time>2013-10-12T15:37:43Z</time>
   </play>
 </plays>
-xo```
+```
 
 ``` ruby
 require 'serialisable'
