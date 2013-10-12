@@ -11,8 +11,17 @@ module Serialisable
     @__element[name] = [selector, type]
   end
 
-  def elements(name, klass)
-    @__elements[name] = [klass]
+  def elements(name, *args)
+    case args.size
+    when 1
+      klass = args.first
+      @__elements[name] = [nil, klass]
+    when 2
+      selector, type = args
+      @__elements[name] = [selector, type]
+    else
+      raise InvalidArgumentException.new
+    end
   end
 
   def deserialise(xml)
@@ -57,8 +66,16 @@ module Serialisable
   def __deserialise(doc)
     doc = doc.children.find {|node| node.name == @__root }
 
-    attrs = @__elements.map do |name, (klass)|
-      [name, klass.send(:__deserialise_all, doc)]
+    attrs = @__elements.map do |name, (selector, type)|
+      if type.respond_to?(:__deserialise_all, true)
+        [name, type.send(:__deserialise_all, doc)]
+      else
+        values = doc.children.find_all {|node| node.name == selector }
+          .map {|node| node.children.to_s }
+          .map {|value| type.respond_to?(:parse) ? type.parse(value) : value }
+
+        [name, values]
+      end
     end
 
     attrs += @__element.map do |name, (selector, type)|

@@ -46,6 +46,35 @@ describe Serialisable do
     end
   end
 
+  describe 'with a list of elements to parse' do
+
+    subject {
+      require 'time'
+
+      Class.new {
+        extend Serialisable
+
+        root 'root'
+        elements :times, 'time', Time
+      }
+    }
+
+    let (:xml) {
+      <<EOS
+<?xml version="1.0" encoding="utf-8"?>
+<root>
+  <time>2013-05-06T00:00:00Z</time>
+  <time>2013-06-07T00:00:00Z</time>
+</root>
+EOS
+    }
+
+    it 'takes xml and returns an object, with types parsed' do
+      times = subject.deserialise(xml).times
+      times.must_equal [Time.utc(2013, 5, 6), Time.utc(2013, 6, 7)]
+    end
+  end
+
   describe 'with a nested serialisable' do
 
     subject {
