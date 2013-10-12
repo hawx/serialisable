@@ -178,4 +178,52 @@ EOS
       }.must_raise ArgumentError
     end
   end
+
+  describe 'all together' do
+    let(:xml) {
+      <<EOS
+<?xml version="1.0" encoding="utf-8"?>
+<plays>
+  <play>
+    <track>505</track>
+    <artist>Arctic Monkeys</artist>
+    <time>2013-10-12T15:34:50Z</time>
+  </play>
+  <play>
+    <track>Windowlicker</track>
+    <artist>Aphex Twin</artist>
+    <time>2013-10-12T15:37:43Z</time>
+  </play>
+</plays>
+EOS
+    }
+
+    subject {
+      Class.new {
+        extend Serialisable
+
+        root 'plays'
+        elements :plays, Class.new {
+          extend Serialisable
+
+          root 'play'
+          element :track, 'track'
+          element :artist, 'artist'
+          element :time, 'time', Time
+        }
+      }
+    }
+
+    it 'works!' do
+      plays = subject.deserialise(xml).plays
+
+      plays[0].track.must_equal '505'
+      plays[0].artist.must_equal 'Arctic Monkeys'
+      plays[0].time.must_equal Time.utc(2013, 10, 12, 15, 34, 50)
+
+      plays[1].track.must_equal 'Windowlicker'
+      plays[1].artist.must_equal 'Aphex Twin'
+      plays[1].time.must_equal Time.utc(2013, 10, 12, 15, 37, 43)
+    end
+  end
 end
