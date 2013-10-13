@@ -5,6 +5,11 @@ module Serialisable
     @__root = selector
     @__element = {}
     @__elements = {}
+    @__attribute = {}
+  end
+
+  def attribute(name, selector, type=String)
+    @__attribute[name] = [selector, type]
   end
 
   def element(name, selector, type=String)
@@ -34,15 +39,11 @@ module Serialisable
     doc = doc.children.find_all {|node| node.name == @__root }
 
     attrs_list = doc.map do |node|
-      @__element.map do |name, (selector, type)|
-        value = node.children.find {|node| node.name == selector }.children.to_s
+      attrs = SerialisableHelpers.get_multiples(node, @__elements)
+      attrs += SerialisableHelpers.get_singles(node, @__element)
+      attrs += SerialisableHelpers.get_attributes(node, @__attribute)
 
-        if type.respond_to?(:parse)
-          value = type.parse(value)
-        end
-
-        [name, value]
-      end
+      attrs
     end
 
     objs = []
@@ -66,31 +67,9 @@ module Serialisable
   def __deserialise(doc)
     doc = doc.children.find {|node| node.name == @__root }
 
-    attrs = @__elements.map do |name, (selector, type)|
-      if type.respond_to?(:__deserialise_all, true)
-        [name, type.send(:__deserialise_all, doc)]
-      else
-        values = doc.children.find_all {|node| node.name == selector }
-          .map {|node| node.children.to_s }
-          .map {|value| type.respond_to?(:parse) ? type.parse(value) : value }
-
-        [name, values]
-      end
-    end
-
-    attrs += @__element.map do |name, (selector, type)|
-      if selector.respond_to?(:__deserialise, true)
-        [name, selector.send(:__deserialise, doc)]
-      else
-        value = doc.children.find {|node| node.name == selector }.children.to_s
-
-        if type.respond_to?(:parse)
-          value = type.parse(value)
-        end
-
-        [name, value]
-      end
-    end
+    attrs = SerialisableHelpers.get_multiples(doc, @__elements)
+    attrs += SerialisableHelpers.get_singles(doc, @__element)
+    attrs += SerialisableHelpers.get_attributes(doc, @__attribute)
 
     attrs = Hash[attrs]
 
@@ -104,5 +83,53 @@ module Serialisable
     obj.instance_variable_set(:@__serialisable_attrs, attrs)
     obj
   end
+end
 
+module SerialisableHelpers
+  extend self
+
+  def get_multiples(root, hash)
+    hash.map do |name, (selector, type)|
+      if type.respond_to?(:__deserialise_all, true)
+        [name, type.send(:__deserialise_all, root)]
+      else
+        values = root.children.find_all {|node| node.name == selector }
+          .map {|node| node.children.to_s }
+          .map {|value| parse_type(value, type) }
+
+        [name, values]
+      end
+    end
+  end
+
+  def get_singles(root, hash)
+    hash.map do |name, (selector, type)|
+      if selector.respond_to?(:__deserialise, true)
+        [name, selector.send(:__deserialise, root)]
+      else
+        value = root.children.find {|node| node.name == selector }.children.to_s
+        value = parse_type(value, type)
+
+        [name, value]
+      end
+    end
+  end
+
+  def get_attributes(root, hash)
+    hash.map do |name, (selector, type)|
+      value = root.attributes[selector].value
+      value = parse_type(value, type)
+
+      [name, value]
+    end
+  end
+
+  # Parses the value read from xml if the type given responds to the method
+  # #parse, otherwise returns the string value.
+  #
+  # @param value [String]
+  # @param type [#parse]
+  def parse_type(value, type)
+    type.respond_to?(:parse) ? type.parse(value) : value
+  end
 end
