@@ -5,22 +5,20 @@ Gem::Specification.new do |s|
   s.name         = "serialisable"
   s.author       = "Joshua Hawxwell"
   s.email        = "m@hawx.me"
-  s.summary      = "A short summary of what it does."
+  s.summary      = "Serialisable allows easy xml deserialisation"
   s.homepage     = "http://github.com/hawx/serialisable"
   s.version      = Serialisable::VERSION
   s.license      = 'MIT'
 
   s.description  = <<-DESC
-    A long form description. Nicely indented and wrapped at ~70 chars.
-    Here's a measuring line for you. (Don't keep this in when releasing.)
-    ----------------------------------------------------------------------
+    Serialisable provides a simple DSL for turning xml into ruby objects.
   DESC
 
-  # s.add_dependency 'some-gem', '~> X.X.X'
-  # s.add_development_dependency 'some-gem', '~> X.X.X'
+  s.add_dependency 'nokogiri', '~> 1.6.1'
+  s.add_development_dependency 'minitest', '~> 5.2.0'
+  s.add_development_dependency 'mocha', '~> 1.0.0'
 
-  s.files        = %w(README.md Rakefile LICENCE)
-  s.files       += Dir["{bin,lib,man,test,spec}/**/*"] & `git ls-files`.split("\n")
-  s.test_files   = Dir["{test,spec}/**/*"] & `git ls-files`.split("\n")
-  s.executables  = %w(serialisable)
+  s.files        = %w(README.md Rakefile)
+  s.files       += Dir["{bin,lib,spec}/**/*"] & `git ls-files`.split("\n")
+  s.test_files   = Dir["{spec}/**/*"] & `git ls-files`.split("\n")
 end
