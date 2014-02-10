@@ -14,11 +14,11 @@ Gem::Specification.new do |s|
     Serialisable provides a simple DSL for turning xml into ruby objects.
   DESC
 
-  s.add_dependency 'nokogiri', '~> 1.6.1'
-  s.add_development_dependency 'minitest', '~> 5.2.0'
-  s.add_development_dependency 'mocha', '~> 1.0.0'
+  s.add_dependency 'nokogiri', '~> 1.6'
+  s.add_development_dependency 'minitest', '~> 5.2'
+  s.add_development_dependency 'mocha', '~> 1.0'
 
   s.files        = %w(README.md Rakefile)
-  s.files       += Dir["{bin,lib,spec}/**/*"] & `git ls-files`.split("\n")
-  s.test_files   = Dir["{spec}/**/*"] & `git ls-files`.split("\n")
+  s.files       += Dir["{lib,spec}/**/*"] & `git ls-files`.split("\n")
+  s.test_files   = Dir["spec/**/*"] & `git ls-files`.split("\n")
 end
