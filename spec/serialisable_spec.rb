@@ -79,6 +79,44 @@ EOS
         result.song.name.must_equal '505'
       end
     end
+
+    describe 'with a nested serialisable given a root' do
+      subject {
+        track = Class.new {
+          extend Serialisable
+
+          root 'track'
+          element :artist, 'artist'
+          element :name, 'name'
+        }
+
+        Class.new {
+          extend Serialisable
+
+          root 'songs'
+          element :song, 'song', track
+        }
+      }
+
+      let(:xml) {
+        <<EOS
+<?xml version="1.0" encoding="utf-8"?>
+<songs>
+  <song>
+    <artist>Arctic Monkeys</artist>
+    <name>505</name>
+  </song>
+</songs>
+EOS
+      }
+
+      it 'deserialises the nested object correctly' do
+        result = subject.deserialise(xml)
+
+        result.song.artist.must_equal 'Arctic Monkeys'
+        result.song.name.must_equal '505'
+      end
+    end
   end
 
   describe '#elements' do
@@ -149,24 +187,51 @@ EOS
       end
     end
 
-    it 'raises an exception if not given less than two arguments' do
-      lambda {
+    describe 'with a list of nested objects given a root' do
+      subject {
+        track = Class.new {
+          extend Serialisable
+
+          root 'track'
+          element :artist, 'artist'
+          element :name, 'name'
+        }
+
         Class.new {
           extend Serialisable
 
-          elements :name
+          root 'songs'
+          elements :songs, 'song', track
         }
-      }.must_raise ArgumentError
-    end
+      }
 
-    it 'raises an exception if given more than three arguments' do
-      lambda {
-        Class.new {
-          extend Serialisable
+      let(:xml) {
+        <<EOS
+<?xml version="1.0" encoding="utf-8"?>
+<songs>
+  <song>
+    <artist>Arctic Monkeys</artist>
+    <name>505</name>
+  </song>
+  <song>
+    <artist>Aphex Twin</artist>
+    <name>Windowlicker</name>
+  </song>
+</songs>
+EOS
+      }
 
-          elements :name, 'one', 'two', 'three'
-        }
-      }.must_raise ArgumentError
+      it 'takes xml and returns an object with a list of nested objects' do
+        result = subject.deserialise(xml)
+
+        result.songs.length.must_equal 2
+
+        result.songs[0].artist.must_equal 'Arctic Monkeys'
+        result.songs[0].name.must_equal '505'
+
+        result.songs[1].artist.must_equal 'Aphex Twin'
+        result.songs[1].name.must_equal 'Windowlicker'
+      end
     end
   end
 
